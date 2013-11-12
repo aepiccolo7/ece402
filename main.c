@@ -17,10 +17,10 @@
 int main(int argc, char** argv) {
     SYSTEMConfigPerformance(50000000);
     SYSTEMConfigPB(50000000);
-    TRISA = 0b11110011;
+    TRISA = 0b11100011;
     int data;
     int i=0, j=0;
-    float lowpass, highpass;
+    int lowpass, highpass;
     float * input, temp, output, filter1, filter2;
     int block = 100;				//block size
     int filterlength = 100; 		//order of filters
@@ -31,13 +31,28 @@ int main(int argc, char** argv) {
     REFOCON = 0x00009000;   //Enable REFCLKO module
     RPB15R = 0x0005; //set OC1 for pin RPB15
     OC1CON = 0x0006; //set OC1 mode
-    PR2 = 0x0001;    
-    OC1RS = 0x0001;
+    PR2 = 0x0001;    //period
+    OC1RS = 0x0001;  //duty cycle
     T2CONSET = 0x8000; //turn on timer2
     OC1CONSET = 0x8000; //Enable OC1 module
-    
+
     while(1) {
-        PORTA = 0x04;
+        lowpass = get_lowpass_cutoff()/100;
+        if (lowpass == 0){
+            PORTA = 0x00;
+        } else if((lowpass >0) && (lowpass <=10)) {
+            PORTA = 0x04;
+        } else if((lowpass >10) && (lowpass <=20)) {
+            PORTA = 0x08;
+        } else if((lowpass >20) && (lowpass <=30)) {
+            PORTA = 0x0C;
+        } else if((lowpass >30) && (lowpass <=40)) {
+            PORTA = 0x10;
+        } else if((lowpass >40) && (lowpass <50)) {
+            PORTA = 0x14;
+        } else {
+            PORTA = 0x18;
+        }
        /*data = SPI1BUF;
         if (data > 0x00000000) {
             PORTA &= ~(0x04);
@@ -48,7 +63,6 @@ int main(int argc, char** argv) {
     }
     /*init_DAC();
     set_block_size(block);
-    init_user_input();
 
     input = (float *)malloc(sizeof(float)*block);	//set up needed arrays
     temp = (float *)malloc(sizeof(float)*block);
@@ -81,3 +95,19 @@ int main(int argc, char** argv) {
     */
 }
 
+int get_lowpass_cutoff(void)
+{
+    int value;
+    AD1CON1 = 0x000000E0; //turn off ADC and use autosample
+    AD1CON3 = 0x00000100; //set autosample time
+    AD1CHS = 0x00090000; //AN9 channel
+
+    AD1CON1SET = 0x8000; //turn on ADC
+    while(!(AD1CON1 & 0x0001)); //wait for conversion to finish
+    value = ADC1BUF0;    //get adc value
+    if (((value/60)+10) > 50) {
+        return 5000;
+    } else {
+        return 100*((value/60)+5);
+    }  
+}
