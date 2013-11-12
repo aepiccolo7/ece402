@@ -8,13 +8,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <p32xxxx.h>
+#include <plib.h>
 #include "FIR_Filters.h"
 #include "init.h"
 /*
  * 
  */
 int main(int argc, char** argv) {
-    TRISA = 0b00011100;
+    SYSTEMConfigPerformance(50000000);
+    SYSTEMConfigPB(50000000);
+    TRISA = 0b11110011;
     int data;
     int i=0, j=0;
     float lowpass, highpass;
@@ -24,13 +27,24 @@ int main(int argc, char** argv) {
 
     init_ADC();				//initialize everything
 
+    RPB2R = 0x0007;         //REFCLKO to RPB2R
+    REFOCON = 0x00009000;   //Enable REFCLKO module
+    RPB15R = 0x0005; //set OC1 for pin RPB15
+    OC1CON = 0x0006; //set OC1 mode
+    PR2 = 0x0001;    
+    OC1RS = 0x0001;
+    T2CONSET = 0x8000; //turn on timer2
+    OC1CONSET = 0x8000; //Enable OC1 module
+    
     while(1) {
-        data = SPI1BUF;
-        if (data < 0x7FFFFFFF) {
-            PORTA &= ~(0x1C);
+        PORTA = 0x04;
+       /*data = SPI1BUF;
+        if (data > 0x00000000) {
+            PORTA &= ~(0x04);
         } else {
-            PORTA |= 0x1C;
+            PORTA |= 0x04;
         }
+        */
     }
     /*init_DAC();
     set_block_size(block);
