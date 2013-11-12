@@ -111,3 +111,20 @@ int get_lowpass_cutoff(void)
         return 100*((value/60)+5);
     }  
 }
+
+int get_highpass_cutoff(void)
+{
+    int value;
+    AD1CON1 = 0x000000E0; //turn off ADC and use autosample
+    AD1CON3 = 0x00000100; //set autosample time
+    AD1CHS = 0x000A0000; //AN11 channel
+
+    AD1CON1SET = 0x8000; //turn on ADC
+    while(!(AD1CON1 & 0x0001)); //wait for conversion to finish
+    value = ADC1BUF0;    //get adc value
+    if (((value/60)+10) >50) {
+        return 5000;
+    } else {
+        return 100*((value/60)+5);
+    }
+}
