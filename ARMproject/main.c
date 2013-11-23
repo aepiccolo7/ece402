@@ -14,6 +14,7 @@ int main(void)
 	//SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 	//GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);
 	init_DAC();
+	//init_ADC();
 	while(1)
 	{
 		give_dac_sample(value);
