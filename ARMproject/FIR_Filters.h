@@ -15,6 +15,8 @@ typedef struct{
 
 FIR_T *init_fir(float *filter_coefs, int n_coef);
 
+FIR_T *change_fir(float *filter_coefs_new, FIR_T *s);
+
 float calc_fir(FIR_T *s, float x);
 
 void destroy_fir(FIR_T *s);

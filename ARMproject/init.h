@@ -6,5 +6,7 @@ void init_ADC(void);
 
 void init_DAC(void);
 
+void init_user_input(void);
+
 #endif	/* INIT_H */
 
