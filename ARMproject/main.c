@@ -23,14 +23,15 @@
 int main(void)
 {
 	SysCtlClockSet(SYSCTL_SYSDIV_3|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
-	int filter_order = 5, i, j;
+	int filter_order = 15;
+	int i, j;
 	int count = 0;
 	int active = 0;
 	uint32_t ADC4Value[4];
 	uint32_t ADC5Value[4];
 	uint32_t ADCvalue;
 
-	FIR_T *lp_filter = init_fir(h_lp[1], filter_order);
+	FIR_T *lp_filter = init_fir(h_lp[30], filter_order);
 	FIR_T *hp_filter = init_fir(h_hp[1], filter_order);
 
 	uint32_t sample_frequency = 50000;
