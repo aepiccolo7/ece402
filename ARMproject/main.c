@@ -27,7 +27,7 @@ int main(void)
 {
 	SysCtlClockSet(SYSCTL_SYSDIV_3|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);	//Set system clock frequency
 	int filter_order = 3;
-	int i, j;
+	int j;
 	int count = 0;
 	int active = 0;
 	uint32_t ADC4Value[4];
