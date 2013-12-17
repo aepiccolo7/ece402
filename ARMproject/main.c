@@ -21,7 +21,6 @@
 #define SW1 GPIO_PIN_4
 #define SW2 GPIO_PIN_0
 
-#define sos 2
 
 //Main function to optionally variably filter input through HP and LP filters
 int main(void)
@@ -79,8 +78,11 @@ int main(void)
 
 			//convert ADC value to cutoff array value and change coefs
 			if (ADCvalue > 245) ADCvalue = 245;
-			j = (ADCvalue/5) + 1;
+			j = (ADCvalue/5);
+			if (j >= 50) j=49;	//make sure j cant go outside array bounds
+			if (j < 0) j=0;
 
+			//change filter coefficients
 			lp_filter = change_iir(h_lp[j][0], h_lp[j][1], lp_filter);
 
 			//get other ADC value 4 times and average it
@@ -91,11 +93,12 @@ int main(void)
 			ADCvalue = ((ADC5Value[0] + ADC5Value[1] + ADC5Value[2] + ADC5Value[3] + 2)/4)/16;  //8 bit value
 
 			//convert ADC value to cutoff array value and change coefs
-
 			if (ADCvalue > 245) ADCvalue = 245;
-			j = (ADCvalue/5) + 1;
+			j = (ADCvalue/5);
+			if (j >= 50) j=49;	//make sure j cant go outside array bounds
+			if (j < 0) j=0;
 
-
+			//change filter coefficients
 			hp_filter = change_iir(h_hp[j][0], h_hp[j][1], hp_filter);
 			count++;
 		}
