@@ -12,6 +12,7 @@
 #include "filter_coef.h"
 #include "FIR_Filters.h"
 #include "driverlib/adc.h"
+#include "IIR_Filter.h"
 
 #define LED_RED GPIO_PIN_1
 #define LED_BLUE GPIO_PIN_2
@@ -20,10 +21,13 @@
 #define SW1 GPIO_PIN_4
 #define SW2 GPIO_PIN_0
 
+#define sos 2
+
+//Main function to optionally variably filter input through HP and LP filters
 int main(void)
 {
 	SysCtlClockSet(SYSCTL_SYSDIV_3|SYSCTL_USE_PLL|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);	//Set system clock frequency
-	int filter_order = 15;
+	int filter_order = 3;
 	int i, j;
 	int count = 0;
 	int active = 0;
@@ -31,11 +35,13 @@ int main(void)
 	uint32_t ADC5Value[4];
 	uint32_t ADCvalue;
 
-	FIR_T *lp_filter = init_fir(h_lp[30], filter_order);		//allocate memory for filters
-	FIR_T *hp_filter = init_fir(h_hp[1], filter_order);			//allocate memory for filters
+
+	IIR_T *lp_filter = init_iir(filter_order+1, h_lp[0][0], h_lp[0][1]);		//allocate memory for filters
+
+	IIR_T *hp_filter = init_iir(filter_order+1, h_hp[0][0], h_hp[0][1]);			//allocate memory for filters
 
 	uint32_t sample_frequency = 50000;							//desired sample rate
-	uint32_t sample_period = 30 + (SysCtlClockGet() / sample_frequency); //empirically measured sample rate of 49.3 ksps
+	uint32_t sample_period = 30 + (SysCtlClockGet() / sample_frequency); //empirically measured sample rate of 49.7 ksps
 
 	//initialize
 	init_DAC();
@@ -73,8 +79,9 @@ int main(void)
 
 			//convert ADC value to cutoff array value and change coefs
 			if (ADCvalue > 245) ADCvalue = 245;
-			i = (ADCvalue/5) + 1;
-			lp_filter = change_fir(h_lp[i], lp_filter);
+			j = (ADCvalue/5) + 1;
+
+			lp_filter = change_iir(h_lp[j][0], h_lp[j][1], lp_filter);
 
 			//get other ADC value 4 times and average it
 			ADCIntClear(ADC0_BASE, 2);
@@ -87,14 +94,16 @@ int main(void)
 
 			if (ADCvalue > 245) ADCvalue = 245;
 			j = (ADCvalue/5) + 1;
-			hp_filter = change_fir(h_hp[j], hp_filter);
+
+
+			hp_filter = change_iir(h_hp[j][0], h_hp[j][1], hp_filter);
 			count++;
 		}
 
 		//either filter on(led green) or filter off (led red)
 		if (active) {
 			GPIOPinWrite(GPIO_PORTF_BASE, LED_RED|LED_GREEN|LED_BLUE, LED_GREEN);
-			give_dac_sample(calc_fir(hp_filter, calc_fir(lp_filter, get_adc_sample()) - 127) + 127);	//lp/hp filter adc sample and stream to dac
+			give_dac_sample(calc_iir(hp_filter, calc_iir(lp_filter, get_adc_sample()) - 127) + 127);	//lp/hp filter adc sample and stream to dac
 		} else {
 			GPIOPinWrite(GPIO_PORTF_BASE, LED_RED|LED_GREEN|LED_BLUE, LED_RED);
 			give_dac_sample(get_adc_sample());
