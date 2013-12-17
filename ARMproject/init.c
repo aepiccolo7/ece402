@@ -6,25 +6,36 @@
 #include "driverlib/gpio.h"
 #include "driverlib/adc.h"
 
+
+//Function to initialize all the needed ADC pins
 void init_ADC(void)
 {
+	//enable peripherals
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA); //control lines
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE); //bits 0-5 data lines
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC); //bits 6-7 data lines
+
+    //set pin types
     GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_6);	//RDbar control lines
     GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_7);  //INTbar control line
     GPIOPinTypeGPIOInput(GPIO_PORTE_BASE, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5); //data input bits 0-5
     GPIOPinTypeGPIOInput(GPIO_PORTC_BASE, GPIO_PIN_6|GPIO_PIN_7);	//data input bits 6-7
 }
 
+//Function to initialize all the needed DAC pins
 void init_DAC(void)
 {
+	//enable peripherals
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);	//data lines
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);	//control lines
+
+	//set pin types
 	GPIOPinTypeGPIOOutput(GPIO_PORTB_BASE, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7); //8 data pins
 	GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE, GPIO_PIN_5); //1 control line
 }
 
+//Function to initialize the needed pins for the pots and set up the ADCs for reading
+//	those values in 4 times in a row to average them.
 void init_user_input(void)
 {
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
